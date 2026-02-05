@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import { useAuth } from './contexts/AuthContext';
@@ -90,6 +90,10 @@ function MonitoringDashboard() {
   const [monitoring, setMonitoring] = useState(false);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+  const frameIntervalRef = useRef(null);
   const [metrics, setMetrics] = useState({
     blinks_per_min: 0,
     perclos: 0,
@@ -151,21 +155,90 @@ function MonitoringDashboard() {
     };
   }, []);
 
-  const startMonitoring = () => {
-    if (socket) {
-      // Pass user_id and token to the server for user-specific data saving
+  // Start browser camera and send frames to server
+  const startMonitoring = async () => {
+    if (!socket) return;
+    
+    try {
+      // Request camera access
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { width: 640, height: 480, facingMode: 'user' } 
+      });
+      streamRef.current = stream;
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      
+      // Tell server we're starting
       socket.emit('start_monitoring', { 
         user_id: user?.id,
-        token: token
+        token: token,
+        browser_camera: true  // Flag that we're using browser camera
       });
+      
+      setMonitoring(true);
+      setError(null);
+      
+      // Send frames to server every 100ms (10 FPS)
+      frameIntervalRef.current = setInterval(() => {
+        if (videoRef.current && canvasRef.current && socket) {
+          const canvas = canvasRef.current;
+          const video = videoRef.current;
+          const ctx = canvas.getContext('2d');
+          
+          canvas.width = 640;
+          canvas.height = 480;
+          ctx.drawImage(video, 0, 0, 640, 480);
+          
+          // Convert to base64 and send
+          const frameData = canvas.toDataURL('image/jpeg', 0.7);
+          socket.emit('process_frame', { frame: frameData });
+        }
+      }, 100);
+      
+    } catch (err) {
+      console.error('Camera access error:', err);
+      setError('Cannot access camera. Please allow camera permissions.');
     }
   };
 
   const stopMonitoring = () => {
+    // Stop frame sending
+    if (frameIntervalRef.current) {
+      clearInterval(frameIntervalRef.current);
+      frameIntervalRef.current = null;
+    }
+    
+    // Stop camera stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
     if (socket) {
       socket.emit('stop_monitoring');
     }
+    
+    setMonitoring(false);
   };
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (frameIntervalRef.current) {
+        clearInterval(frameIntervalRef.current);
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
 
   const getStrainColor = () => {
     if (metrics.strain_level === 'Low') return '#00FF00';
@@ -238,12 +311,17 @@ function MonitoringDashboard() {
           {/* Left Section - Camera Feed */}
           <section className="camera-section">
             <div className="camera-container">
+              {/* Hidden canvas for frame capture */}
+              <canvas ref={canvasRef} style={{ display: 'none' }} />
+              
               {monitoring ? (
-                <img
-                  src="http://localhost:5000/video_feed"
-                  alt="Camera Feed"
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
                   className="camera-feed"
-                  onError={() => console.log('Video feed error')}
+                  style={{ transform: 'scaleX(-1)' }}
                 />
               ) : (
                 <div className="camera-placeholder-box">

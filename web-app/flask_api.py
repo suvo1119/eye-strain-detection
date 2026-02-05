@@ -536,10 +536,17 @@ def handle_start_monitoring(data=None):
     if data and isinstance(data, dict):
         user_id = data.get('user_id')
         token = data.get('token')
+        browser_camera = data.get('browser_camera', False)
         if user_id:
             current_user_id = user_id
         if token:
             current_user_token = token
+        
+        # If using browser camera, don't start webcam thread
+        if browser_camera:
+            monitoring_active = True
+            emit('monitoring_started', {'status': 'Monitoring started', 'user_id': current_user_id, 'session_id': current_session_id})
+            return
     
     if not monitoring_active:
         monitoring_active = True
@@ -547,6 +554,64 @@ def handle_start_monitoring(data=None):
         thread.start()
     
     emit('monitoring_started', {'status': 'Monitoring started', 'user_id': current_user_id, 'session_id': current_session_id})
+
+
+# Track last save time for browser camera mode
+browser_last_save_time = 0
+
+@socketio.on('process_frame')
+def handle_process_frame(data):
+    """SocketIO: Process frame from browser camera"""
+    global current_metrics, browser_last_save_time, current_user_id, current_session_id
+    
+    if not monitoring_active:
+        return
+    
+    try:
+        # Ensure landmarker is initialized
+        if not ensure_landmarker():
+            emit('error', {'message': 'Face detection not available'})
+            return
+        
+        # Decode base64 image
+        frame_data = data.get('frame', '')
+        if not frame_data:
+            return
+        
+        # Remove data URL prefix if present
+        if ',' in frame_data:
+            frame_data = frame_data.split(',')[1]
+        
+        import base64
+        img_bytes = base64.b64decode(frame_data)
+        img_array = np.frombuffer(img_bytes, dtype=np.uint8)
+        frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+        
+        if frame is None:
+            return
+        
+        # Flip horizontally (mirror) to match browser preview
+        frame = cv2.flip(frame, 1)
+        
+        # Process the frame
+        metrics = process_frame(frame)
+        current_metrics = metrics
+        
+        # Emit metrics back to client
+        emit('metrics_update', metrics)
+        
+        # Save metrics every 30 seconds for authenticated user
+        current_time = time.time()
+        if current_user_id and (current_time - browser_last_save_time) >= 30:
+            try:
+                with app.app_context():
+                    save_eye_strain_data(current_user_id, metrics, current_session_id)
+                browser_last_save_time = current_time
+            except Exception as e:
+                print(f"Error saving metrics: {e}")
+                
+    except Exception as e:
+        print(f"Error processing frame: {e}")
 
 
 @socketio.on('stop_monitoring')
