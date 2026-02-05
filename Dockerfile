@@ -38,12 +38,12 @@ WORKDIR /app/web-app
 RUN npm run build
 
 # Set environment variables
-ENV PORT=8080
+ENV PORT=10000
 ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
 
-# Expose port
-EXPOSE 8080
+# Expose port (Render uses 10000 by default)
+EXPOSE 10000
 
-# Start with simple Python script (uses Flask-SocketIO's eventlet server)
+# Start the application
 CMD ["python", "start.py"]
