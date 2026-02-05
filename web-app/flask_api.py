@@ -80,11 +80,11 @@ ensure_guest_user()
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Register blueprints
+# Register blueprints FIRST (before catch-all routes)
 app.register_blueprint(auth_bp)
 app.register_blueprint(reports_bp)
 
-# Serve React App in production
+# Serve React App in production (only for non-API routes)
 @app.route('/')
 def serve_react():
     if IS_PRODUCTION and os.path.exists('dist/index.html'):
@@ -93,6 +93,10 @@ def serve_react():
 
 @app.route('/<path:path>')
 def serve_static(path):
+    # Don't intercept API routes - let blueprints handle them
+    if path.startswith('api/'):
+        return jsonify({"error": "API endpoint not found"}), 404
+    
     if IS_PRODUCTION:
         # Try to serve the file from dist folder
         if os.path.exists(os.path.join('dist', path)):
