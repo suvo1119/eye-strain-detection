@@ -198,7 +198,19 @@
   }
 
   .app-footer {
-    @apply bg-gray-900 border-t border-gray-700 px-6 py-4 mt-8 text-center text-gray-500 text-sm;
+    @apply bg-gray-900 border-t border-gray-700 px-6 py-4 mt-8 text-center text-gray-500 text-sm flex flex-col gap-2;
+  }
+
+  .footer-privacy {
+    @apply flex items-center justify-center gap-2 text-gray-400;
+  }
+
+  .footer-privacy i {
+    @apply text-green-400;
+  }
+
+  .footer-copyright {
+    @apply text-gray-500 font-medium;
   }
 
   .mobile-hidden {

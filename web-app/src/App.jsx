@@ -438,7 +438,13 @@ function MonitoringDashboard() {
       </div>
 
       <footer className="app-footer">
-        <p>Connected to server at {SOCKET_SERVER}</p>
+        <div className="footer-privacy">
+          <i className="fas fa-shield-alt"></i>
+          <span>Privacy: Your camera data is processed in real-time and never stored on our servers.</span>
+        </div>
+        <div className="footer-copyright">
+          © {new Date().getFullYear()} Suvadip Mondal. All rights reserved.
+        </div>
       </footer>
     </div>
   );
