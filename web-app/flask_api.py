@@ -567,3 +567,4 @@ if __name__ == "__main__":
     print(f"Server running at http://localhost:{port}")
     print(f"Production mode: {IS_PRODUCTION}")
     socketio.run(app, debug=debug, host="0.0.0.0", port=port)
+
