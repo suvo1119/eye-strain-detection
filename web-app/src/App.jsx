@@ -314,31 +314,40 @@ function MonitoringDashboard() {
               {/* Hidden canvas for frame capture */}
               <canvas ref={canvasRef} style={{ display: 'none' }} />
               
-              {monitoring ? (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="camera-feed"
-                  style={{ transform: 'scaleX(-1)' }}
-                />
-              ) : (
+              {/* Video element - always rendered but hidden when not monitoring */}
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="camera-feed"
+                style={{ 
+                  transform: 'scaleX(-1)',
+                  display: monitoring ? 'block' : 'none',
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '12px'
+                }}
+              />
+              
+              {!monitoring && (
                 <div className="camera-placeholder-box">
                   <div className="placeholder-content">
                     <i className="fas fa-camera"></i>
                     <p>Camera Feed</p>
+                    <span className="camera-hint-text">Click Start Monitoring to begin</span>
                   </div>
                 </div>
               )}
-              <div className="camera-overlay">
-                {!monitoring && (
-                  <div className="camera-hint">
-                    <i className="fas fa-play-circle"></i>
-                    <span>Click Start Monitoring</span>
-                  </div>
-                )}
-              </div>
+              
+              {/* Live indicator when monitoring */}
+              {monitoring && (
+                <div className="live-indicator">
+                  <span className="live-dot"></span>
+                  <span>LIVE</span>
+                </div>
+              )}
             </div>
           </section>
 

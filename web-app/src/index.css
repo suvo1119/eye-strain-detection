@@ -198,19 +198,35 @@
   }
 
   .app-footer {
-    @apply bg-gray-900 border-t border-gray-700 px-6 py-4 mt-8 text-center text-gray-500 text-sm flex flex-col gap-2;
+    @apply bg-gray-900 border-t border-gray-700 px-4 md:px-6 py-4 mt-8 text-center text-gray-500 text-xs md:text-sm flex flex-col gap-2;
   }
 
   .footer-privacy {
-    @apply flex items-center justify-center gap-2 text-gray-400;
+    @apply flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 text-gray-400 text-xs md:text-sm;
   }
 
   .footer-privacy i {
     @apply text-green-400;
   }
 
+  .footer-privacy span {
+    @apply text-center;
+  }
+
   .footer-copyright {
-    @apply text-gray-500 font-medium;
+    @apply text-gray-500 font-medium text-xs md:text-sm;
+  }
+
+  .camera-hint-text {
+    @apply text-gray-500 text-sm mt-2;
+  }
+
+  .live-indicator {
+    @apply absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full flex items-center gap-2 text-sm font-bold;
+  }
+
+  .live-dot {
+    @apply w-2 h-2 bg-white rounded-full animate-pulse;
   }
 
   .mobile-hidden {
