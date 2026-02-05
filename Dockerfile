@@ -50,3 +50,4 @@ EXPOSE 10000
 
 # Start the application
 CMD ["python", "start.py"]
+# Fixed
