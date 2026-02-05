@@ -1,0 +1,43 @@
+# Python virtual environment
+venv/
+env/
+ENV/
+.venv
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# MediaPipe model (auto-downloaded on first run)
+face_landmarker_v2.task
+
+# Session reports (generated during runtime)
+reports/
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+
+# Database (will be created at runtime)
+instance/
+*.db
+
+# OS files
+.DS_Store
+.env
+.env.local
+.env.production.local

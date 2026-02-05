@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["python311", "nodejs_18"]
+
+[phases.install]
+cmds = ["npm install", "pip install -r requirements.txt"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "gunicorn --worker-class eventlet -w 1 flask_api:app --bind 0.0.0.0:$PORT"
