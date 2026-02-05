@@ -34,8 +34,12 @@ from database import db, init_db, User
 from auth_routes import auth_bp
 from reports_routes import reports_bp, save_eye_strain_data
 
-# Determine if running in production
-IS_PRODUCTION = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('FLASK_ENV') == 'production'
+# Determine if running in production (check multiple platforms)
+IS_PRODUCTION = (
+    os.environ.get('RAILWAY_ENVIRONMENT') or 
+    os.environ.get('RENDER') or 
+    os.environ.get('FLASK_ENV') == 'production'
+)
 
 # Setup static folder for production (serving React build)
 static_folder = 'dist' if IS_PRODUCTION else None
