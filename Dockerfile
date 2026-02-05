@@ -45,5 +45,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose port
 EXPOSE 8080
 
-# Start with Python directly (guaranteed to work)
-CMD ["python", "-m", "gunicorn", "--worker-class", "eventlet", "-w", "1", "flask_api:app", "--bind", "0.0.0.0:8080"]
+# Start with simple Python script (uses Flask-SocketIO's eventlet server)
+CMD ["python", "start.py"]
