@@ -181,22 +181,36 @@ function MonitoringDashboard() {
       setMonitoring(true);
       setError(null);
       
-      // Send frames to server every 100ms (10 FPS)
+      // Optimized frame sending for cloud deployment
+      // Use smaller resolution and lower quality for faster transmission
+      let isProcessing = false;
+      
       frameIntervalRef.current = setInterval(() => {
-        if (videoRef.current && canvasRef.current && socket) {
+        // Skip if previous frame is still being processed (prevents queue buildup)
+        if (isProcessing) return;
+        
+        if (videoRef.current && canvasRef.current && socket && socket.connected) {
           const canvas = canvasRef.current;
           const video = videoRef.current;
           const ctx = canvas.getContext('2d');
           
-          canvas.width = 640;
-          canvas.height = 480;
-          ctx.drawImage(video, 0, 0, 640, 480);
+          // Use smaller resolution for faster transmission (320x240 instead of 640x480)
+          canvas.width = 320;
+          canvas.height = 240;
+          ctx.drawImage(video, 0, 0, 320, 240);
           
-          // Convert to base64 and send
-          const frameData = canvas.toDataURL('image/jpeg', 0.7);
-          socket.emit('process_frame', { frame: frameData });
+          // Lower quality JPEG for faster transmission
+          const frameData = canvas.toDataURL('image/jpeg', 0.5);
+          
+          isProcessing = true;
+          socket.emit('process_frame', { frame: frameData }, () => {
+            isProcessing = false;
+          });
+          
+          // Fallback to reset processing flag after timeout
+          setTimeout(() => { isProcessing = false; }, 500);
         }
-      }, 100);
+      }, 150);  // 150ms = ~6-7 FPS (better for cloud latency)
       
     } catch (err) {
       console.error('Camera access error:', err);

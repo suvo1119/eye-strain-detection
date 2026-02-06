@@ -165,10 +165,10 @@ def ensure_landmarker():
 
 # Eye strain monitoring settings
 WINDOW_SECONDS = 60
-BLINK_EAR_THRESH = 0.2
-PERCLOS_EAR_THRESH = 0.2
-MIN_BLINK_DURATION_MS = 50
-MAX_BLINK_DURATION_MS = 500
+BLINK_EAR_THRESH = 0.22  # Increased for better detection over network (was 0.2)
+PERCLOS_EAR_THRESH = 0.22  # Increased for better detection over network
+MIN_BLINK_DURATION_MS = 30  # Reduced to catch faster blinks (was 50)
+MAX_BLINK_DURATION_MS = 600  # Increased to allow for frame timing variance (was 500)
 
 RIGHT_EYE = [362, 385, 387, 263, 373, 380]
 LEFT_EYE = [33, 160, 158, 133, 153, 144]
@@ -597,7 +597,7 @@ def handle_process_frame(data):
         metrics = process_frame(frame)
         current_metrics = metrics
         
-        # Emit metrics back to client
+        # Emit metrics back to client immediately
         emit('metrics_update', metrics)
         
         # Save metrics every 30 seconds for authenticated user
